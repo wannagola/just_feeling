@@ -6,6 +6,7 @@ import DMPage from '@/pages/dmpage';
 import ProfilePage from '@/pages/profilepage';
 import HomePage from '@/pages/homepage';
 import CreatePostPage from '@/pages/createpostpage'; 
+import DMChatRoomPage from '@/pages/DMChatRoomPage'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -20,6 +21,8 @@ function App() {
             <Route path="/dm" element={<DMPage />} />
             <Route path="/profilepage" element={<ProfilePage />} />
             <Route path="/create" element={<CreatePostPage />} /> 
+            <Route path="/" element={<CreatePostPage />} />
+            <Route path="/dm/:chatRoomId" element={<DMChatRoomPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AppInner>
