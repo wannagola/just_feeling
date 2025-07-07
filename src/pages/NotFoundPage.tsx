@@ -6,7 +6,7 @@ const NotFoundPage = () => {
 
   return (
     <Container>
-      <Image src="\public\Notfoundimg.jpg" alt="404" />
+      <Image src="\public\images\Notfoundimg.jpg" alt="404" />
       <Title>잘못된 접근입니다.</Title>
       <Message>찾으시는 페이지가 존재하지 않습니다.</Message>
       <HomeButton onClick={() => navigate('/')}>홈으로</HomeButton>
