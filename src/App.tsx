@@ -6,6 +6,8 @@ import LoginPage from '@/pages/loginpage';
 import NotFoundPage from '@/pages/NotFoundPage';
 import DMPage from '@/pages/dmpage';
 import ProfilePage from '@/pages/profilepage';
+
+import DMChatRoomPage from '@/pages/DMChatRoomPage'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -27,6 +29,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dm" element={<DMPage />} />
             <Route path="/profilepage" element={<ProfilePage />} />
+            <Route path="/dm/:chatRoomId" element={<DMChatRoomPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AppInner>
