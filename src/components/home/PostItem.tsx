@@ -39,7 +39,7 @@ const PostItem = ({ userId, emotion, contentText, contentImage }: PostItemProps)
 export default PostItem;
 
 const Card = styled.div`
-  background-color: ${({ theme }) => theme.colors.gray900};
+  background-color: ${({ theme }) => theme.colors.gray1000};
   color: ${({ theme }) => theme.colors.gray00};
   padding: ${({ theme }) => theme.spacing.spacing4};
   margin-bottom: ${({ theme }) => theme.spacing.spacing5};

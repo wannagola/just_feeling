@@ -1,5 +1,6 @@
 import styled from '@emotion/styled';
 import PostItem from '@/components/home/PostItem';
+import AddPostBanner from '@/components/home/AddPostBanner';
 
 const posts = [
   {
@@ -25,6 +26,7 @@ const posts = [
 const HomePage = () => {
   return (
     <FeedWrapper>
+      <AddPostBanner /> 
       {posts.map((post, index) => (
         <PostItem
           key={index}

@@ -5,6 +5,7 @@ import NotFoundPage from '@/pages/NotFoundPage';
 import DMPage from '@/pages/dmpage';
 import ProfilePage from '@/pages/profilepage';
 import HomePage from '@/pages/homepage';
+import CreatePostPage from '@/pages/createpostpage'; 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dm" element={<DMPage />} />
             <Route path="/profilepage" element={<ProfilePage />} />
+            <Route path="/create" element={<CreatePostPage />} /> 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AppInner>
