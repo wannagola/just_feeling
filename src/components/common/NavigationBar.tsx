@@ -25,7 +25,7 @@ const NavigationBar = () => {
   };
 
   const handleTitleClick = () => {
-    navigate('/'); // ✅ 제목 클릭 시 홈으로 이동
+    navigate('/');
   };
 
   return (
@@ -57,7 +57,6 @@ const NavigationBar = () => {
 
 export default NavigationBar;
 
-// -------------------- 스타일 --------------------
 
 const NavBar = styled.header`
   position: relative;
