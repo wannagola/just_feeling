@@ -22,11 +22,22 @@ const LoginFormSection = ({ onLoginSuccess }: Props) => {
     isFormValid,
   } = useLoginForm();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid) {
-      localStorage.setItem('token', 'mock-user-token');
-      onLoginSuccess();
+      try {
+        const { ApiService } = await import('@/services/api');
+        const response = await ApiService.login(id, pw);
+        
+        if (response.success) {
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          onLoginSuccess();
+        }
+      } catch (error) {
+        console.error('로그인 실패:', error);
+        alert('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.');
+      }
     }
   };
 

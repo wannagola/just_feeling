@@ -1,19 +1,24 @@
 /** @jsxImportSource @emotion/react */
-import React from 'react';                    // ← React import 추가
+import React from 'react';
 import { css } from '@emotion/react';
 import { useParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';  // ← FormEvent 제거
-import chatLogData from '../../public/chatLog.json';
-import users from '../../public/userName.json';
+import { useState, useEffect } from 'react';
+import { ApiService } from '@/services/api';
 
 // 내 userID
-const myID = 1001;
+const myID = 1;
 
-// userID → userName 맵
-const userMap: Record<number, string> = users.reduce((map, user) => {
-  map[user.userID] = user.userName;
-  return map;
-}, {} as Record<number, string>);
+interface ChatMessage {
+  messageId: number;
+  senderID: number;
+  content: string;
+  timestamp: string;
+}
+
+interface User {
+  userID: number;
+  userName: string;
+}
 
 // Emotion 스타일
 const pageStyle = css`
@@ -93,45 +98,80 @@ const timestampStyle = css`
   right: 8px;
 `;
 
-type LogItem = {
-  messageId: number;
-  senderID: number;
-  content: string;
-  timestamp: string;
-};
+
 
 const dmChatRoomPage = () => {
   const { chatRoomId } = useParams<{ chatRoomId: string }>();
   const roomIdNum = Number(chatRoomId);
 
-  const [logs, setLogs] = useState<LogItem[]>([]);
+  const [logs, setLogs] = useState<ChatMessage[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // userID → userName 맵
+  const userMap: Record<number, string> = users.reduce((map, user) => {
+    map[user.userID] = user.userName;
+    return map;
+  }, {} as Record<number, string>);
 
   useEffect(() => {
-    const room = chatLogData.find((r) => r.chatRoomId === roomIdNum);
-    if (room) {
-      const sorted = [...room.chatLog].sort(
-        (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-      );
-      setLogs(sorted);
-    }
+    const fetchData = async () => {
+      try {
+        const [messagesResponse, usersResponse] = await Promise.all([
+          ApiService.getChatMessages(roomIdNum),
+          ApiService.getAllUsers()
+        ]);
+        setLogs(messagesResponse);
+        setUsers(usersResponse);
+      } catch (error) {
+        console.error('데이터 로딩 실패:', error);
+        // 에러 발생 시 기본 데이터 사용
+        setUsers([
+          { userID: 1, userName: "T7" },
+          { userID: 2, userName: "A1" },
+          { userID: 3, userName: "Z9" },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [roomIdNum]);
 
-  const handleSend = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSend = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const text = input.trim();
     if (!text) return;
 
-    const newMessage: LogItem = {
-      messageId: logs.length > 0 ? logs[logs.length - 1].messageId + 1 : 1,
-      senderID: myID,
-      content: text,
-      timestamp: new Date().toISOString(),
-    };
-
-    setLogs((prev) => [...prev, newMessage]);
-    setInput('');
+    try {
+      const response = await ApiService.sendMessage(roomIdNum, myID, text);
+      if (response.success) {
+        setLogs((prev) => [...prev, response.chatMessage]);
+        setInput('');
+      }
+    } catch (error) {
+      console.error('메시지 전송 실패:', error);
+      // 에러 발생 시 로컬에 임시 추가
+      const newMessage: ChatMessage = {
+        messageId: logs.length > 0 ? logs[logs.length - 1].messageId + 1 : 1,
+        senderID: myID,
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
+      setLogs((prev) => [...prev, newMessage]);
+      setInput('');
+    }
   };
+
+  if (loading) {
+    return (
+      <div css={pageStyle}>
+        <div>로딩 중...</div>
+      </div>
+    );
+  }
 
   return (
     <div css={pageStyle}>
