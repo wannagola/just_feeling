@@ -1,84 +1,74 @@
 package com.justfeeling.controller;
 
 import com.justfeeling.dto.LoginRequest;
-import com.justfeeling.entity.User;
-import com.justfeeling.repository.UserRepository;
+import com.justfeeling.dto.RegisterRequest;
+import com.justfeeling.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/emoai/auth")
 @CrossOrigin(origins = "http://localhost:3000")
+@Tag(name = "Authentication", description = "사용자 인증 관련 API")
 public class AuthController {
     
     @Autowired
-    private UserRepository userRepository;
+    private AuthService authService;
     
+    @Operation(summary = "사용자 로그인", description = "이메일과 비밀번호로 로그인하여 토큰을 발급받습니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "로그인 성공", 
+                    content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "400", description = "로그인 실패 - 잘못된 이메일 또는 비밀번호",
+                    content = @Content(mediaType = "application/json"))
+    })
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> login(
+        @Parameter(description = "로그인 요청 정보", required = true)
+        @Valid @RequestBody LoginRequest loginRequest) {
         
-        // 간단한 로그인 처리 (실제로는 패스워드 암호화 필요)
-        Optional<User> user = userRepository.findByEmail(loginRequest.getEmail());
+        Map<String, Object> response = authService.login(loginRequest);
+        boolean success = (Boolean) response.get("success");
         
-        if (user.isPresent() && user.get().getPassword().equals(loginRequest.getPassword())) {
-            response.put("success", true);
-            response.put("message", "로그인 성공");
-            response.put("token", "mock-jwt-token");
-            response.put("user", Map.of(
-                "userID", user.get().getUserID(),
-                "userName", user.get().getUserName(),
-                "email", user.get().getEmail()
-            ));
-            return ResponseEntity.ok(response);
-        } else {
-            response.put("success", false);
-            response.put("message", "이메일 또는 비밀번호가 잘못되었습니다.");
-            return ResponseEntity.badRequest().body(response);
-        }
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
     }
     
+    @Operation(summary = "사용자 회원가입", description = "새로운 사용자 계정을 생성합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "회원가입 성공"),
+        @ApiResponse(responseCode = "400", description = "회원가입 실패 - 이메일 또는 사용자명 중복")
+    })
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, String> request) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> register(
+        @Parameter(description = "회원가입 요청 정보", required = true)
+        @Valid @RequestBody RegisterRequest request) {
         
-        String email = request.get("email");
-        String password = request.get("password");
-        String userName = request.get("userName");
+        Map<String, Object> response = authService.register(
+            request.getUserName(), 
+            request.getEmail(), 
+            request.getPassword()
+        );
+        boolean success = (Boolean) response.get("success");
         
-        // 이메일 중복 체크
-        if (userRepository.existsByEmail(email)) {
-            response.put("success", false);
-            response.put("message", "이미 존재하는 이메일입니다.");
-            return ResponseEntity.badRequest().body(response);
-        }
-        
-        // 사용자명 중복 체크
-        if (userRepository.existsByUserName(userName)) {
-            response.put("success", false);
-            response.put("message", "이미 존재하는 사용자명입니다.");
-            return ResponseEntity.badRequest().body(response);
-        }
-        
-        // 새 사용자 생성
-        User newUser = new User(userName, email, password);
-        userRepository.save(newUser);
-        
-        response.put("success", true);
-        response.put("message", "회원가입 성공");
-        return ResponseEntity.ok(response);
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
     }
     
+    @Operation(summary = "사용자 로그아웃", description = "현재 세션을 종료합니다.")
+    @ApiResponse(responseCode = "200", description = "로그아웃 성공")
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "로그아웃 성공");
+        Map<String, Object> response = authService.logout();
         return ResponseEntity.ok(response);
     }
 } 

@@ -10,6 +10,7 @@ import com.justfeeling.repository.ChatRoomRepository;
 import com.justfeeling.repository.ChatMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -29,17 +30,21 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
     
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     @Override
     public void run(String... args) throws Exception {
         // 사용자 데이터 초기화
         if (userRepository.count() == 0) {
-            // 테스트용 사용자들
-            userRepository.save(new User("T7", "test1@example.com", "password"));
-            userRepository.save(new User("A1", "test2@example.com", "password"));
-            userRepository.save(new User("Z9", "test3@example.com", "password"));
-            userRepository.save(new User("seyopppii", "seyop@example.com", "password"));
-            userRepository.save(new User("siuuuuuuuu", "siu@example.com", "password"));
-            userRepository.save(new User("dobum_man", "dobum@example.com", "password"));
+            // 테스트용 사용자들 (패스워드 암호화 적용)
+            String encodedPassword = passwordEncoder.encode("password");
+            userRepository.save(new User("T7", "test1@example.com", encodedPassword));
+            userRepository.save(new User("A1", "test2@example.com", encodedPassword));
+            userRepository.save(new User("Z9", "test3@example.com", encodedPassword));
+            userRepository.save(new User("seyopppii", "seyop@example.com", encodedPassword));
+            userRepository.save(new User("siuuuuuuuu", "siu@example.com", encodedPassword));
+            userRepository.save(new User("dobum_man", "dobum@example.com", encodedPassword));
         }
         
         // 포스트 데이터 초기화

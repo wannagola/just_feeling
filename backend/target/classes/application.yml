@@ -23,4 +23,8 @@ spring:
 
 logging:
   level:
-    com.justfeeling: DEBUG 
+    com.justfeeling: DEBUG
+
+jwt:
+  secret: justFeelingSecretKeyForJwtTokenGenerationThatMustBeLongEnoughForHS256Algorithm
+  expiration: 86400000 # 24시간 (밀리초) 

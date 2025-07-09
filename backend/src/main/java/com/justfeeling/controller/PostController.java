@@ -2,75 +2,76 @@ package com.justfeeling.controller;
 
 import com.justfeeling.dto.CreatePostRequest;
 import com.justfeeling.entity.Post;
-import com.justfeeling.repository.PostRepository;
+import com.justfeeling.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/emoai/posts")
 @CrossOrigin(origins = "http://localhost:3000")
+@Tag(name = "Posts", description = "감정 게시글 관리 API")
 public class PostController {
     
     @Autowired
-    private PostRepository postRepository;
+    private PostService postService;
     
+    @Operation(summary = "모든 게시글 조회", description = "최신순으로 정렬된 모든 감정 게시글을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "게시글 목록 조회 성공")
     @GetMapping
     public ResponseEntity<List<Post>> getAllPosts() {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> posts = postService.getAllPosts();
         return ResponseEntity.ok(posts);
     }
     
+    @Operation(summary = "특정 사용자 게시글 조회", description = "특정 사용자가 작성한 모든 게시글을 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "사용자 게시글 목록 조회 성공")
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Post>> getPostsByUser(@PathVariable String userId) {
-        List<Post> posts = postRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    public ResponseEntity<List<Post>> getPostsByUser(
+        @Parameter(description = "사용자 ID", required = true)
+        @PathVariable String userId) {
+        List<Post> posts = postService.getPostsByUser(userId);
         return ResponseEntity.ok(posts);
     }
     
+    @Operation(summary = "새 게시글 작성", description = "새로운 감정 게시글을 작성합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "게시글 작성 성공"),
+        @ApiResponse(responseCode = "400", description = "게시글 작성 실패")
+    })
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createPost(@RequestBody CreatePostRequest request) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> createPost(
+        @Parameter(description = "게시글 작성 요청 정보", required = true)
+        @Valid @RequestBody CreatePostRequest request) {
         
-        try {
-            Post newPost = new Post(
-                request.getUserId(),
-                request.getEmotion(),
-                request.getContentText(),
-                request.getContentImage()
-            );
-            
-            Post savedPost = postRepository.save(newPost);
-            
-            response.put("success", true);
-            response.put("message", "포스트가 성공적으로 생성되었습니다.");
-            response.put("post", savedPost);
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "포스트 생성 중 오류가 발생했습니다.");
-            return ResponseEntity.badRequest().body(response);
-        }
+        Map<String, Object> response = postService.createPost(request);
+        boolean success = (Boolean) response.get("success");
+        
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
     }
     
+    @Operation(summary = "게시글 삭제", description = "특정 게시글을 삭제합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "게시글 삭제 성공"),
+        @ApiResponse(responseCode = "400", description = "게시글 삭제 실패")
+    })
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Map<String, Object>> deletePost(@PathVariable Long postId) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> deletePost(
+        @Parameter(description = "삭제할 게시글 ID", required = true)
+        @PathVariable Long postId) {
         
-        try {
-            postRepository.deleteById(postId);
-            response.put("success", true);
-            response.put("message", "포스트가 삭제되었습니다.");
-            return ResponseEntity.ok(response);
-            
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "포스트 삭제 중 오류가 발생했습니다.");
-            return ResponseEntity.badRequest().body(response);
-        }
+        Map<String, Object> response = postService.deletePost(postId);
+        boolean success = (Boolean) response.get("success");
+        
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
     }
 } 

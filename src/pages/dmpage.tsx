@@ -75,17 +75,6 @@ const DMPage = () => {
         setUsers(usersResponse);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
-        // 에러 발생 시 기본 데이터 사용
-        setChatRooms([
-          { chatRoomId: 1, title: "가족 단체 채팅", participants: "[1, 2, 3, 4]", senderID: 1 },
-          { chatRoomId: 2, title: "친구와의 수다", participants: "[2, 3, 4]", senderID: 2 },
-        ]);
-        setUsers([
-          { userID: 1, userName: "T7" },
-          { userID: 2, userName: "A1" },
-          { userID: 3, userName: "Z9" },
-          { userID: 4, userName: "M5" },
-        ]);
       } finally {
         setLoading(false);
       }
