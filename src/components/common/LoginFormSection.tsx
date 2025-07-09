@@ -1,6 +1,7 @@
 /** @jsxImportSource @emotion/react */
 import styled from '@emotion/styled';
 import { useLoginForm } from '@/hooks/useLoginForm';
+import { useUserStore } from '@/stores/useUserStore';
 import { theme } from '@/constants/theme';
 
 type Props = {
@@ -22,6 +23,8 @@ const LoginFormSection = ({ onLoginSuccess }: Props) => {
     isFormValid,
   } = useLoginForm();
 
+  const { login } = useUserStore();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isFormValid) {
@@ -30,8 +33,7 @@ const LoginFormSection = ({ onLoginSuccess }: Props) => {
         const response = await ApiService.login(id, pw);
         
         if (response.success) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+          login(response.user, response.token);
           onLoginSuccess();
         }
       } catch (error) {

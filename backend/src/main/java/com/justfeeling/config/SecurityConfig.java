@@ -33,7 +33,9 @@ public class SecurityConfig {
                 .requestMatchers("/emoai/auth/**").permitAll() // 인증 엔드포인트는 허용
                 .requestMatchers("/emoai/posts/**").permitAll() // 게시글 엔드포인트는 허용 (임시)
                 .requestMatchers("/emoai/users/**").permitAll() // 사용자 엔드포인트는 허용 (임시)
+                .requestMatchers("/emoai/likes/**").permitAll() // 좋아요 엔드포인트는 허용 (임시)
                 .requestMatchers("/emoai/chat/**").permitAll() // 채팅 엔드포인트는 허용 (임시)
+                .requestMatchers("/ws/**").permitAll() // WebSocket 엔드포인트 허용
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Swagger 허용
                 .requestMatchers("/h2-console/**").permitAll() // H2 콘솔 허용
                 .anyRequest().authenticated()

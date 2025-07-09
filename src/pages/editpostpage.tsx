@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useUserStore } from '@/stores/useUserStore';
 import { ApiService } from '@/services/api';
 
-// 감정 옵션 정의
+// 감정 옵션 정의 (CreatePostPage와 동일)
 const EMOTION_OPTIONS = [
   { emoji: '😊', text: '기쁨', value: '😊 기쁨' },
   { emoji: '😢', text: '슬픔', value: '😢 슬픔' },
@@ -18,16 +18,73 @@ const EMOTION_OPTIONS = [
   { emoji: '🥳', text: '신남', value: '🥳 신남' },
 ];
 
-const CreatePostPage = () => {
+interface Post {
+  id: number;
+  userId: string;
+  emotion: string;
+  contentText: string;
+  contentImage: string;
+  createdAt: string;
+}
+
+const EditPostPage = () => {
   const navigate = useNavigate();
+  const { postId } = useParams<{ postId: string }>();
   const { user } = useUserStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedEmotion, setSelectedEmotion] = useState<string>('');
   const [contentText, setContentText] = useState<string>('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // 게시글 데이터 로드
+  useEffect(() => {
+    const loadPost = async () => {
+      if (!postId) {
+        alert('잘못된 접근입니다.');
+        navigate('/');
+        return;
+      }
+
+      try {
+        // 모든 게시글을 가져와서 해당 ID 찾기 (현재 개별 게시글 조회 API가 없으므로)
+        const posts = await ApiService.getAllPosts();
+        const targetPost = posts.find((p: Post) => p.id === parseInt(postId));
+        
+        if (!targetPost) {
+          alert('게시글을 찾을 수 없습니다.');
+          navigate('/');
+          return;
+        }
+
+        // 작성자 확인
+        if (user && targetPost.userId !== user.userName) {
+          alert('수정 권한이 없습니다.');
+          navigate('/');
+          return;
+        }
+
+        setPost(targetPost);
+        setSelectedEmotion(targetPost.emotion);
+        setContentText(targetPost.contentText);
+        if (targetPost.contentImage) {
+          setImagePreview(targetPost.contentImage);
+        }
+      } catch (error) {
+        console.error('게시글 로드 실패:', error);
+        alert('게시글을 불러오는 중 오류가 발생했습니다.');
+        navigate('/');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [postId, user, navigate]);
 
   // 이미지 파일 선택 처리
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,11 +110,11 @@ const CreatePostPage = () => {
     }
   };
 
-  // 게시글 작성 제출
+  // 게시글 수정 제출
   const handleSubmit = async () => {
-    if (!user) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
+    if (!user || !post) {
+      alert('잘못된 접근입니다.');
+      navigate('/');
       return;
     }
 
@@ -78,33 +135,44 @@ const CreatePostPage = () => {
       let imageData = '';
       if (selectedImage) {
         imageData = imagePreview;
+      } else if (imagePreview && !selectedImage) {
+        // 기존 이미지 유지
+        imageData = imagePreview;
       }
 
-      const response = await ApiService.createPost(
-        user.userName,
+      const response = await ApiService.updatePost(
+        post.id,
         selectedEmotion,
         contentText.trim(),
         imageData
       );
 
       if (response.success) {
-        alert('게시글이 성공적으로 작성되었습니다!');
+        alert('게시글이 성공적으로 수정되었습니다!');
         navigate('/');
       } else {
-        alert(response.message || '게시글 작성에 실패했습니다.');
+        alert(response.message || '게시글 수정에 실패했습니다.');
       }
     } catch (error) {
-      console.error('게시글 작성 실패:', error);
-      alert('게시글 작성 중 오류가 발생했습니다.');
+      console.error('게시글 수정 실패:', error);
+      alert('게시글 수정 중 오류가 발생했습니다.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 작성 취소
+  // 수정 취소
   const handleCancel = () => {
-    if (selectedEmotion || contentText || selectedImage) {
-      if (confirm('작성 중인 내용이 삭제됩니다. 정말 취소하시겠습니까?')) {
+    if (!post) return;
+    
+    const hasChanges = 
+      selectedEmotion !== post.emotion || 
+      contentText !== post.contentText ||
+      selectedImage ||
+      (imagePreview !== (post.contentImage || ''));
+      
+    if (hasChanges) {
+      if (confirm('수정 중인 내용이 삭제됩니다. 정말 취소하시겠습니까?')) {
         navigate('/');
       }
     } else {
@@ -112,16 +180,32 @@ const CreatePostPage = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Container>
+        <LoadingMessage>게시글을 불러오는 중...</LoadingMessage>
+      </Container>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Container>
+        <ErrorMessage>게시글을 찾을 수 없습니다.</ErrorMessage>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <Header>
         <CancelButton onClick={handleCancel}>취소</CancelButton>
-        <Title>새 게시글</Title>
+        <Title>게시글 수정</Title>
         <SubmitButton 
           onClick={handleSubmit}
           disabled={!selectedEmotion || !contentText.trim() || isSubmitting}
         >
-          {isSubmitting ? '작성 중...' : '게시하기'}
+          {isSubmitting ? '수정 중...' : '수정하기'}
         </SubmitButton>
       </Header>
 
@@ -145,11 +229,11 @@ const CreatePostPage = () => {
 
         {/* 내용 입력 섹션 */}
         <Section>
-          <SectionTitle>어떤 일이 있었나요?</SectionTitle>
+          <SectionTitle>내용 수정</SectionTitle>
           <TextArea
             value={contentText}
             onChange={(e) => setContentText(e.target.value)}
-            placeholder="오늘의 감정과 경험을 자유롭게 기록해보세요..."
+            placeholder="게시글 내용을 입력해주세요..."
             maxLength={1000}
           />
           <CharCount>{contentText.length}/1000</CharCount>
@@ -157,7 +241,7 @@ const CreatePostPage = () => {
 
         {/* 이미지 업로드 섹션 */}
         <Section>
-          <SectionTitle>사진 추가 (선택사항)</SectionTitle>
+          <SectionTitle>사진 수정 (선택사항)</SectionTitle>
           <input
             type="file"
             ref={fileInputRef}
@@ -169,9 +253,14 @@ const CreatePostPage = () => {
           {imagePreview ? (
             <ImagePreviewContainer>
               <ImagePreview src={imagePreview} alt="업로드된 이미지" />
-              <RemoveImageButton onClick={handleImageRemove}>
-                ✕ 이미지 제거
-              </RemoveImageButton>
+              <ImageButtonContainer>
+                <ChangeImageButton onClick={() => fileInputRef.current?.click()}>
+                  🔄 이미지 변경
+                </ChangeImageButton>
+                <RemoveImageButton onClick={handleImageRemove}>
+                  ✕ 이미지 제거
+                </RemoveImageButton>
+              </ImageButtonContainer>
             </ImagePreviewContainer>
           ) : (
             <ImageUploadButton onClick={() => fileInputRef.current?.click()}>
@@ -186,7 +275,7 @@ const CreatePostPage = () => {
             <SectionTitle>미리보기</SectionTitle>
             <PreviewCard>
               <PreviewHeader>
-                <PreviewUser>{user?.userName || '사용자'}</PreviewUser>
+                <PreviewUser>{post.userId}</PreviewUser>
                 <PreviewEmotion>{selectedEmotion}</PreviewEmotion>
               </PreviewHeader>
               <PreviewContent>{contentText}</PreviewContent>
@@ -199,12 +288,30 @@ const CreatePostPage = () => {
   );
 };
 
-export default CreatePostPage;
+export default EditPostPage;
 
-// 스타일 컴포넌트들
+// 스타일 컴포넌트들 (CreatePostPage와 동일한 구조)
 const Container = styled.div`
   min-height: 100vh;
   background-color: ${({ theme }) => theme.backgroundColors.fill};
+`;
+
+const LoadingMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font: ${({ theme }) => theme.typography.body1Regular};
+  color: ${({ theme }) => theme.textColors.sub};
+`;
+
+const ErrorMessage = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  font: ${({ theme }) => theme.typography.body1Regular};
+  color: ${({ theme }) => theme.stateColors.critical};
 `;
 
 const Header = styled.div`
@@ -362,6 +469,25 @@ const ImagePreview = styled.img`
   box-shadow: ${({ theme }) => theme.colors.gray200} 0px 2px 8px;
 `;
 
+const ImageButtonContainer = styled.div`
+  display: flex;
+  gap: ${({ theme }) => theme.spacing.spacing3};
+`;
+
+const ChangeImageButton = styled.button`
+  background-color: ${({ theme }) => theme.colors.blue600};
+  color: ${({ theme }) => theme.colors.gray00};
+  border: none;
+  border-radius: 4px;
+  padding: ${({ theme }) => `${theme.spacing.spacing2} ${theme.spacing.spacing4}`};
+  font: ${({ theme }) => theme.typography.label2Bold};
+  cursor: pointer;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.colors.blue700};
+  }
+`;
+
 const RemoveImageButton = styled.button`
   background-color: ${({ theme }) => theme.stateColors.critical};
   color: ${({ theme }) => theme.colors.gray00};
@@ -412,4 +538,4 @@ const PreviewImage = styled.img`
   max-height: 200px;
   object-fit: cover;
   border-radius: 8px;
-`;
+`; 

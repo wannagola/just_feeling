@@ -1,6 +1,7 @@
 package com.justfeeling.controller;
 
 import com.justfeeling.dto.CreatePostRequest;
+import com.justfeeling.dto.UpdatePostRequest;
 import com.justfeeling.entity.Post;
 import com.justfeeling.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,6 +71,24 @@ public class PostController {
         @PathVariable Long postId) {
         
         Map<String, Object> response = postService.deletePost(postId);
+        boolean success = (Boolean) response.get("success");
+        
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
+    }
+    
+    @Operation(summary = "게시글 수정", description = "특정 게시글을 수정합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "게시글 수정 성공"),
+        @ApiResponse(responseCode = "400", description = "게시글 수정 실패")
+    })
+    @PutMapping("/{postId}")
+    public ResponseEntity<Map<String, Object>> updatePost(
+        @Parameter(description = "수정할 게시글 ID", required = true)
+        @PathVariable Long postId,
+        @Parameter(description = "게시글 수정 요청 정보", required = true)
+        @Valid @RequestBody UpdatePostRequest request) {
+        
+        Map<String, Object> response = postService.updatePost(postId, request);
         boolean success = (Boolean) response.get("success");
         
         return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);

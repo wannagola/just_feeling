@@ -1,35 +1,33 @@
 import styled from '@emotion/styled';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import LoginFormSection from '@/components/common/LoginFormSection';
+import { useNavigate, Link } from 'react-router-dom';
+import RegisterFormSection from '@/components/common/RegisterFormSection';
 
-const LoginPage = () => {
+const RegisterPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const from = location.state?.from || '/';
-
-  const handleLogin = () => {
-    navigate(from, { replace: true });
+  const handleRegisterSuccess = () => {
+    navigate('/login', { replace: true });
   };
 
   return (
     <Container>
       <Logo>Just Feeling</Logo>
-      <LoginFormSection onLoginSuccess={handleLogin} />
+      <Title>회원가입</Title>
+      <RegisterFormSection onRegisterSuccess={handleRegisterSuccess} />
       <LinkContainer>
-        <StyledLink to="/register">계정이 없으신가요? 회원가입하기</StyledLink>
+        <StyledLink to="/login">이미 계정이 있으신가요? 로그인하기</StyledLink>
       </LinkContainer>
     </Container>
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
 
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: ${({ theme }) => theme.spacing.spacing12} ${({ theme }) => theme.spacing.spacing5} 0;
+  padding: ${({ theme }) => theme.spacing.spacing8} ${({ theme }) => theme.spacing.spacing5} 0;
   background-color: ${({ theme }) => theme.backgroundColors.default};
   max-width: 720px;
   margin: 0 auto;
@@ -39,7 +37,13 @@ const Container = styled.div`
 const Logo = styled.h1`
   font: ${({ theme }) => theme.typography.title1Bold};
   color: ${({ theme }) => theme.textColors.default};
-  margin-bottom: ${({ theme }) => theme.spacing.spacing12};
+  margin-bottom: ${({ theme }) => theme.spacing.spacing4};
+`;
+
+const Title = styled.h2`
+  font: ${({ theme }) => theme.typography.title2Bold};
+  color: ${({ theme }) => theme.textColors.default};
+  margin-bottom: ${({ theme }) => theme.spacing.spacing8};
 `;
 
 const LinkContainer = styled.div`
@@ -56,4 +60,4 @@ const StyledLink = styled(Link)`
     color: ${({ theme }) => theme.colors.blue700};
     text-decoration: underline;
   }
-`;
+`; 

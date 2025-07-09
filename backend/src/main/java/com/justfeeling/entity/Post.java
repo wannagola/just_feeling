@@ -22,6 +22,9 @@ public class Post {
     private String contentImage;
     
     @Column(nullable = false)
+    private int likeCount = 0;
+    
+    @Column(nullable = false)
     private LocalDateTime createdAt;
     
     // 기본 생성자
@@ -77,6 +80,14 @@ public class Post {
     
     public void setContentImage(String contentImage) {
         this.contentImage = contentImage;
+    }
+    
+    public int getLikeCount() {
+        return likeCount;
+    }
+    
+    public void setLikeCount(int likeCount) {
+        this.likeCount = likeCount;
     }
     
     public LocalDateTime getCreatedAt() {

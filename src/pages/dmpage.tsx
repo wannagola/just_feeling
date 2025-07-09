@@ -3,6 +3,7 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ApiService } from '@/services/api';
+import { webSocketService } from '@/services/websocketService';
 
 interface ChatRoom {
   chatRoomId: number;
@@ -101,7 +102,7 @@ const DMPage = () => {
             <div
               key={room.chatRoomId}
               css={roomItemStyle}
-              onClick={() => navigate(`/dm/${room.chatRoomId}`)}
+              onClick={() => navigate(`/dmchatroom/${room.chatRoomId}`)}
             >
               <h3 css={roomTitleStyle}>{room.title}</h3>
               <p css={roomParticipantsStyle}>

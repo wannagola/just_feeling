@@ -71,4 +71,20 @@ public class AuthController {
         Map<String, Object> response = authService.logout();
         return ResponseEntity.ok(response);
     }
+    
+    @Operation(summary = "토큰 검증", description = "JWT 토큰의 유효성을 검증합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "토큰 검증 성공"),
+        @ApiResponse(responseCode = "400", description = "토큰 검증 실패")
+    })
+    @PostMapping("/validate")
+    public ResponseEntity<Map<String, Object>> validateToken(
+        @Parameter(description = "검증할 JWT 토큰", required = true)
+        @RequestHeader("Authorization") String token) {
+        
+        Map<String, Object> response = authService.validateToken(token);
+        boolean success = (Boolean) response.get("success");
+        
+        return success ? ResponseEntity.ok(response) : ResponseEntity.badRequest().body(response);
+    }
 } 
