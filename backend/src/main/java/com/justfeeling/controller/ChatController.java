@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/chat")
-@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping("/emoai/chat")
+@CrossOrigin(origins = "http://localhost:3000")
 public class ChatController {
     
     @Autowired

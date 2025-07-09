@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping("/emoai/users")
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
     
     @Autowired
