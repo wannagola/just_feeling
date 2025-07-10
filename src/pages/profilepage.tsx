@@ -78,10 +78,12 @@ const ProfilePage = () => {
              {userPosts.map((post) => (
                <PostItem
                  key={post.postID}
+                 postId={post.postID}
                  userId={post.userId}
                  emotion={post.emotion}
                  contentText={post.contentText}
-                 contentImage={post.contentImage} postId={0}               />
+                 contentImage={post.contentImage}
+               />
              ))}
            </PostList>
         ) : (

@@ -1,5 +1,8 @@
 package com.justfeeling.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.justfeeling.dto.SendMessageRequest;
 import com.justfeeling.entity.ChatMessage;
 import com.justfeeling.entity.ChatRoom;
@@ -10,10 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -25,11 +26,49 @@ public class ChatService {
     @Autowired
     private ChatMessageRepository chatMessageRepository;
     
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    
     /**
      * 모든 채팅방 조회
      */
     public List<ChatRoom> getAllChatRooms() {
         return chatRoomRepository.findAll();
+    }
+    
+    /**
+     * 특정 사용자가 참여한 채팅방만 조회
+     */
+    public List<ChatRoom> getChatRoomsByUser(Long userId) {
+        List<ChatRoom> allChatRooms = chatRoomRepository.findAll();
+        
+        return allChatRooms.stream()
+            .filter(chatRoom -> isUserParticipant(chatRoom, userId))
+            .collect(Collectors.toList());
+    }
+    
+    /**
+     * 사용자가 채팅방 참여자인지 확인
+     */
+    private boolean isUserParticipant(ChatRoom chatRoom, Long userId) {
+        try {
+            String participantsJson = chatRoom.getParticipants();
+            if (participantsJson == null || participantsJson.trim().isEmpty()) {
+                return false;
+            }
+            
+            // JSON 배열을 Long 리스트로 파싱
+            List<Long> participantIds = objectMapper.readValue(
+                participantsJson, 
+                new TypeReference<List<Long>>() {}
+            );
+            
+            return participantIds.contains(userId);
+            
+        } catch (JsonProcessingException e) {
+            // JSON 파싱 실패 시, 문자열로 직접 확인 (fallback)
+            String participantsStr = chatRoom.getParticipants();
+            return participantsStr.contains(userId.toString());
+        }
     }
     
     /**

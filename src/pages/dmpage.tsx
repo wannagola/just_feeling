@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ApiService } from '@/services/api';
 import { webSocketService } from '@/services/websocketService';
+import { useUserStore } from '@/stores/useUserStore';
 
 interface ChatRoom {
   chatRoomId: number;
@@ -55,6 +56,7 @@ const roomParticipantsStyle = css`
 
 const DMPage = () => {
   const navigate = useNavigate();
+  const { user, isLoggedIn } = useUserStore();
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,23 +68,29 @@ const DMPage = () => {
   }, {} as Record<number, string>);
 
   useEffect(() => {
+    if (!isLoggedIn || !user) {
+      navigate('/login');
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const [chatRoomsResponse, usersResponse] = await Promise.all([
-          ApiService.getChatRooms(),
+          ApiService.getChatRoomsByUser(user.userID), // 사용자별 채팅방만 조회
           ApiService.getAllUsers()
         ]);
         setChatRooms(chatRoomsResponse);
         setUsers(usersResponse);
       } catch (error) {
         console.error('데이터 로딩 실패:', error);
+        setChatRooms([]); // 에러 시 빈 배열로 설정
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user, isLoggedIn, navigate]);
 
   if (loading) {
     return (

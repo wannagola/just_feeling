@@ -26,11 +26,21 @@ public class ChatController {
     @Autowired
     private ChatService chatService;
     
-    @Operation(summary = "모든 채팅방 조회", description = "현재 사용자가 참여 중인 모든 채팅방을 조회합니다.")
+    @Operation(summary = "모든 채팅방 조회", description = "모든 채팅방을 조회합니다. (관리자용)")
     @ApiResponse(responseCode = "200", description = "채팅방 목록 조회 성공")
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoom>> getAllChatRooms() {
         List<ChatRoom> chatRooms = chatService.getAllChatRooms();
+        return ResponseEntity.ok(chatRooms);
+    }
+    
+    @Operation(summary = "사용자별 채팅방 조회", description = "특정 사용자가 참여 중인 채팅방만 조회합니다.")
+    @ApiResponse(responseCode = "200", description = "사용자 채팅방 목록 조회 성공")
+    @GetMapping("/rooms/user/{userId}")
+    public ResponseEntity<List<ChatRoom>> getChatRoomsByUser(
+        @Parameter(description = "사용자 ID", required = true)
+        @PathVariable Long userId) {
+        List<ChatRoom> chatRooms = chatService.getChatRoomsByUser(userId);
         return ResponseEntity.ok(chatRooms);
     }
     

@@ -138,6 +138,10 @@ export class ApiService {
     return this.fetchApi('/chat/rooms');
   }
 
+  static async getChatRoomsByUser(userId: number) {
+    return this.fetchApi(`/chat/rooms/user/${userId}`);
+  }
+
   static async getChatMessages(chatRoomId: number) {
     return this.fetchApi(`/chat/rooms/${chatRoomId}/messages`);
   }
