@@ -28,3 +28,7 @@ logging:
 jwt:
   secret: justFeelingSecretKeyForJwtTokenGenerationThatMustBeLongEnoughForHS256Algorithm
   expiration: 86400000 # 24시간 (밀리초) 
+
+emotion:
+  api:
+    url: ${EMOTION_API_URL:http://localhost:8000}
