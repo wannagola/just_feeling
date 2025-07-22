@@ -3,7 +3,7 @@ import { css } from '@emotion/react';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { ApiService } from '@/services/api';
-import { webSocketService } from '@/services/websocketService';
+//import { webSocketService } from '@/services/websocketService';
 import { useUserStore } from '@/stores/useUserStore';
 
 interface ChatRoom {
