@@ -19,7 +19,6 @@ import logging
 import os
 import unicodedata
 from shutil import copyfile
-import sentencepiece as spm  # Ensure you have sentencepiece installed: pip install sentencepiece
 
 from transformers import PreTrainedTokenizer
 
@@ -132,6 +131,13 @@ class KoBertTokenizer(PreTrainedTokenizer):
 
     def __setstate__(self, d):
         self.__dict__ = d
+        try:
+            import sentencepiece as spm
+        except ImportError:
+            logger.warning(
+                "You need to install SentencePiece to use KoBertTokenizer: https://github.com/google/sentencepiece"
+                "pip install sentencepiece"
+            )
         self.sp_model = spm.SentencePieceProcessor()
         self.sp_model.Load(self.vocab_file)
 
@@ -242,7 +248,7 @@ class KoBertTokenizer(PreTrainedTokenizer):
             return len(cls + token_ids_0 + sep) * [0]
         return len(cls + token_ids_0 + sep) * [0] + len(token_ids_1 + sep) * [1]
 
-    def save_vocabulary(self, save_directory, filename_prefix=None):
+    def save_vocabulary(self, save_directory):
         """Save the sentencepiece vocabulary (copy original file) and special tokens file
         to a directory.
         """
