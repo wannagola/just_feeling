@@ -68,8 +68,10 @@
             ],
             "x_mitre_attack_spec_version": "3.2.0",
             "x_mitre_deprecated": false,
-            "x_mitre_detection": "Monitor for API calls related to enumerating and manipulating EWM such as GetWindowLong and SetWindowLong. 
-                                  Malware associated with this technique have also used SendNotifyMessage to trigger the associated window procedure and eventual malicious injection.",
+            "x_mitre_detection": "Monitor for API calls related to enumerating and manipulating EWM 
+                                  such as GetWindowLong and SetWindowLong. 
+                                  Malware associated with this technique have also used SendNotifyMessage to trigger 
+                                  the associated window procedure and eventual malicious injection.",
             "x_mitre_domains": [
                 "enterprise-attack"
             ],
